@@ -8,12 +8,16 @@
         if ($function == 1) {
             $doctorId = $_POST['doctor-id'];
             $patient_type = $_POST['patient-type'];
+            $doctor_name = $_POST['doctor_name'];
+            $patient_name = $_POST['patient_name'];
             $email = $_POST['email'];
             $appointmentType = $_POST['appointment-type'];
             $appointedDate = $_POST['appointment-date'];
             $appointmentReason = $_POST['appointment-reason'];
             $hmo = $_POST['hmo'];
             $requestDate = date("Y-m-d") . " " . date("H-i-s");
+
+            
 
 
             if ($patient_type == "1") {
@@ -26,7 +30,7 @@
 
                 if ($patient) {
                     $patientId = $patient['id'];
-                    $addQueue = "INSERT INTO queues (`doctor_id`,`patient_id`,`appointed_date`,`request_date`,`reason`,`hmo_id`,`type_id`) VALUES ('$doctorId','$patientId','$appointedDate','$requestDate','$appointmentReason','$hmo','$appointmentType') ";
+                    $addQueue = "INSERT INTO queues (`doctor_id`,`patient_id`,`doctor_name`,`patient_name`,`appointed_date`,`request_date`,`reason`,`hmo_id`,`type_id`) VALUES ('$doctorId','$patientId','$doctor_name','$patient_name','$appointedDate','$requestDate','$appointmentReason','$hmo','$appointmentType') ";
                 } else {
                     echo "Not Existing Patient!";
                     exit();
@@ -49,15 +53,33 @@
         } else if ($function == 2) {
             $accept = $_POST['accept'];
             $id = $_POST['id'];
-            $getAppointment = "SELECT `doctor_id`,`patient_id`,`appointed_date` FROM queues WHERE `id` = '$id'";
+            $getAppointment = "SELECT * FROM queues WHERE `id` = '$id'";
             $result = $connection -> prepare($getAppointment);
             $result -> execute();
             $appointment = $result -> get_result();
             $appointment = mysqli_fetch_assoc($appointment);
             $requestDate = date("Y-m-d") . " " . date("H-i-s");
 
+            $doctorId = "";
+            $patientId = "";
+            $doctorName = "";
+            $patientName = "";
+            $appointedDate = "";
+            $reason = "";
+            $hmoId = "";
+            $typeId = "";
+
+            if (isset($appointment['doctor_id'])) $doctorId = $appointment['doctor_id'];
+            if (isset($appointment['patient_id'])) $patientId = $appointment['patient_id'];
+            if (isset($appointment['doctor_name'])) $doctorName = $appointment['doctor_name'];
+            if (isset($appointment['patient_name'])) $patientName = $appointment['patient_name'];
+            if (isset($appointment['appointed_date'])) $appointedDate = $appointment['appointed_date'];
+            if (isset($appointment['reason'])) $reason = $appointment['reason'];
+            if (isset($appointment['hmo_id'])) $hmoId = $appointment['hmo_id'];
+            if (isset($appointment['type_id'])) $typeId = $appointment['type_id'];
+
             if ($accept == 'true') {
-                $addAppointment = "INSERT INTO appointments (`doctor_id`,`patient_id`,`appointed_date`,`reason`,`hmo_id`,`type_id`) VALUES ('$appointment[doctor_id]','$appointment[patient_id]','$appointment[appointed_date]','$appointment[reason]','$appointment[hmo_id]','$appointment[type_id]')";
+                $addAppointment = "INSERT INTO appointments (`doctor_id`,`patient_id`,`doctor_name`,`patient_name`,`appointed_date`,`reason`,`hmo_id`,`type_id`) VALUES ('$doctorId','$patientId','$doctorName','$patientName','$appointedDate','$reason','$hmoId','$typeId')";
                 mysqli_query($connection,$addAppointment);
 
                 $appointmentMessageD = "An appointment is added.";
@@ -77,11 +99,13 @@
             mysqli_query($connection,$removeRequest);
 
         } else if ($function == 3) {
+            $sql = "SELECT * FROM queues LEFT JOIN hmos ON queues.hmo_id = hmos.hmo_id";
+
             if (isset($_POST['id'])) {
                 $id = $_POST['id'];
                 $type = $_POST['type'] . "_id";
-                $sql = "SELECT * FROM queues WHERE `$type` = '$id'";
-            } else $sql = "SELECT * FROM queues";
+                $sql .= " WHERE `$type` = '$id'";
+            } 
             $getQueues = mysqli_query($connection,$sql);
             
             $queues = array();

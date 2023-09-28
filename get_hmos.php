@@ -13,7 +13,7 @@
             $insertHMOs .= " OR `id` = '$hmos_id[$i]'"; 
         }
 
-        $getHMOs = "SELECT * FROM hmos WHERE `id` = '$hmos_id[0]'";
+        $getHMOs = "SELECT * FROM hmos WHERE `hmo_id` = '$hmos_id[0]'";
         $getHMOs .= $insertHMOs;
 
         $getHMOsRun = mysqli_query($connection,$getHMOs);
